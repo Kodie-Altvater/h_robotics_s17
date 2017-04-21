@@ -79,7 +79,6 @@ if __name__ == "__main__":
         cv2.imshow('Depth image',depth)
         
         time.sleep(.1)
-        
  
         # quit program when 'esc' key is pressed
         k = cv2.waitKey(5) & 0xFF

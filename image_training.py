@@ -10,13 +10,21 @@ from os.path import realpath, normpath
 # function to get RGB image from kinect
 def get_video():
     array, _ = freenect.sync_get_video( )
+    #print array
+    print array.shape[0]
+    print array.shape[1]
+    print array.shape[2]
+
     array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
+    #print array.__len__()
     return array
 
 
 # function to get depth image from kinect
 def get_depth():
     array, _ = freenect.sync_get_depth( )
+    print array
+    print array.__len__( )
     array = array.astype(np.uint8)
     return array
 
@@ -27,7 +35,8 @@ def get_image(img_data):
     path = normpath(realpath(cv2.__file__) + '../../../../../share/OpenCV/haarcascades')
 
     # get a frame from RGB camera
-    img = get_video()
+    #img = get_video()
+    img = img_data
 
     # get a frame from depth sensor
     #depth = get_depth()
@@ -62,7 +71,47 @@ def get_image(img_data):
 
 if __name__ == '__main__':
 
+    # Setup Socket parameters
+    TCP_IP = '127.0.0.1'
+    TCP_PORT = 51031
+    BUFFER_SIZE = 20  # Normally 1024, but we want fast response
+
+    # try to open socket
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((TCP_IP, TCP_PORT))
+    s.listen(1)
+
+    # listen/grab image data from matlab
+    #data = tcp_data(s)
+
+    # close the socket
+    #s.close()
     while 1:
-        data = tcp_data('127.0.0.1',50000)
-        print data
-        #get_image()
+        img_data = tcp_data(s)
+        tmpdata = []
+        for i in img_data:
+            tmpdata.append(ord(i))
+        #print "received data:", tmpdata
+
+        array = np.array(tmpdata)
+        array = np.reshape(array, (400,400,3))
+        #random_image = np.random.random([500, 500])
+        #print random_image
+
+        #linear1 = np.linspace(0, 255, 7500).reshape((50,50,3)).astype(np.uint8)
+        #linear1 = cv2.cvtColor(linear1, cv2.COLOR_RGB2BGR)
+
+        #print linear1
+        #print linear1.shape[0]
+        #print linear1.shape[1]
+        #print linear1.shape[2]
+
+        time.sleep(1)
+        #array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
+        array = array.astype(np.uint8)
+        #print array
+        get_image(array)
+
+    #while 1:
+    #    print 'hey'
+    #    time.sleep(5)

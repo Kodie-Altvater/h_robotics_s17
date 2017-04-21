@@ -2,9 +2,12 @@
 
 #def setup_socket():
 import socket
-HOST = '10.0.1.13'                # Symbolic name meaning all available interfaces
+import image_training
+
+HOST = '10.0.0.101'      # Symbolic name meaning all available interfaces
 PORT = 50007             # Arbitrary non-privileged port
 
+get_image()
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind((HOST, PORT))
 s.listen(1)
