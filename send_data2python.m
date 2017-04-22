@@ -14,10 +14,16 @@ data = [c1,c2,c3,(data)];
 % data send to python socket
 fwrite(obj, data,'uint8');
 
-while obj.BytesAvailable == 0 end
+% wait for response
+while obj.BytesAvailable == 0 
+end
 
-fclose(obj);
-delete(obj)
+% make sure all of data is read
+while obj.BytesAvailable > 0
+    fread(obj,obj.BytesAvailable);
+end
+
+%fclose(obj);
 
 end
 

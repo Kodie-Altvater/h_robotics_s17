@@ -1,5 +1,11 @@
+# Kodie Altvater
+# Image training and classification
+# April 22nd, 2017
+# Designed for Human Robotics Course project, JHU
+
 # import the necessary modules
 import freenect
+import socket
 from socket_tcp import *
 import cv2
 import time
@@ -10,12 +16,7 @@ from os.path import realpath, normpath
 # function to get RGB image from kinect
 def get_video():
     array, _ = freenect.sync_get_video()
-    #print array
-    #print array.shape[0]
-    #print array.shape[1]
-    #print array.shape[2]
     array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
-    #print array.__len__()
     return array
 
 
@@ -64,7 +65,7 @@ def detect_image(img):
 def setup_socket(ip,port):
     TCP_IP = ip
     TCP_PORT = port
-    BUFFER_SIZE = 20  # Normally 1024, but we want fast response
+    BUFFER_SIZE = 5  # Normally 1024, but we want fast response
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -72,47 +73,56 @@ def setup_socket(ip,port):
     s.listen(1)
     return s
 
-def from_matlab_detect(s):
+def detect(conn):
 
-    while 1:
-        # function that reads data from socket and interprets it as image data
-        # also closes the connection so it must be reopened in sending program accordingly
-        img = read_img(s)
+    # function that reads data from socket and interprets it as image data
+    # also closes the connection so it must be reopened in sending program accordingly
+    img = read_data(conn)
 
-        # THIS TOOK ME FOREVER TO FIGURE OUT. RESHAPE IS NOT THE SAME
-        # IN MATLAB AS IT IS IN PYTHON. MEMORY IS STORED DIFFERENTLY AND
-        # THUS PYTHON IS C LIKE (ROW WISE) and MATLAB IS (COLUMN WISE)
-        img = np.reshape(img, (480, 640, 3), order='F').astype(np.uint8)
+    # THIS TOOK ME FOREVER TO FIGURE OUT. RESHAPE IS NOT THE SAME
+    # IN MATLAB AS IT IS IN PYTHON. MEMORY IS STORED DIFFERENTLY AND
+    # THUS PYTHON IS C LIKE (ROW WISE) and MATLAB IS (COLUMN WISE)
+    img = np.reshape(img, (480, 640, -1), order='F').astype(np.uint8)
 
-        # apply classifier and image detection on image
-        detect_image(img)
-        time.sleep(1)
+    # apply classifier and image detection on image
+    detect_image(img)
+    #print "detected image"
+    time.sleep(1)
 
 
 if __name__ == '__main__':
+    s = setup_socket('127.0.0.1',60000)
+    conn, addr = s.accept()
 
-    s = setup_socket('127.0.0.1',50000)
+    while 1:
 
-    # uses 480 x 640 image and applies classifier and plots
-    from_matlab_detect(s)
+        type = feature2do(conn)
 
-    #while 1:
+        # simple API implemented for various functions
+        if type == 1: # send depth data
+            img = get_depth()
+            send_data(conn, img)
 
-#        img = read_img(s)
+        elif type == 2: # send color data
+            img = get_video()
+            send_data(conn,img)
 
-        # THIS TOOK ME FOREVER TO FIGURE OUT. RESHAPE IS NOT THE SAME
-        # IN MATLAB AS IT IS IN PYTHON. MEMORY IS STORED DIFFERENTLY AND
-        # THUS PYTHON IS C LIKE (ROW WISE) and MATLAB IS (COLUMN WISE)
-#        img = np.reshape(img, (480,640,3), order='F').astype(np.uint8)
+        elif type == 3: # detect using color data
+            detect(conn)
 
-        # apply classifier and image detection on image
-#        detect_image(img)
+        elif type == 4: # close and exit
+            conn.close()
+            break
 
-        #img = get_video()
+        # uses 480 x 640 image and applies classifier and plots
+        #detect(conn)
 
-        # send img to matlab
-        #send_img(s,img)
+        #data = np.array([1,2,3,4]).astype(np.uint8)
+        #send_data(s, data)
 
-    #while 1:
-    #    print 'hey'
-    #    time.sleep(5)
+        #img = get_depth()
+        #send_data(conn,img)
+
+
+    #from_matlab_detect(conn)
+    #conn.close()
