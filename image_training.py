@@ -9,12 +9,11 @@ from os.path import realpath, normpath
 
 # function to get RGB image from kinect
 def get_video():
-    array, _ = freenect.sync_get_video( )
+    array, _ = freenect.sync_get_video()
     #print array
-    print array.shape[0]
-    print array.shape[1]
-    print array.shape[2]
-
+    #print array.shape[0]
+    #print array.shape[1]
+    #print array.shape[2]
     array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
     #print array.__len__()
     return array
@@ -23,33 +22,27 @@ def get_video():
 # function to get depth image from kinect
 def get_depth():
     array, _ = freenect.sync_get_depth( )
-    print array
-    print array.__len__( )
     array = array.astype(np.uint8)
     return array
 
 
 # function to classify image and spit image back
-def get_image(img_data):
+def detect_image(img):
     # Set path to classifiers found in OpenCV install directory
     path = normpath(realpath(cv2.__file__) + '../../../../../share/OpenCV/haarcascades')
 
-    # get a frame from RGB camera
-    #img = get_video()
-    img = img_data
-
-    # get a frame from depth sensor
-    #depth = get_depth()
+    # converts data to image that viewer wants
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
     # These are the haargrave classifiers that are needed for image detection
     face_cascade = cv2.CascadeClassifier(path + '/haarcascade_frontalface_default.xml')
     eye_cascade  = cv2.CascadeClassifier(path + '/haarcascade_eye.xml')
 
     # Convert image to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
     # detects face location
-    faces = face_cascade.detectMultiScale(gray, 1.2, 5)
+    faces = face_cascade.detectMultiScale(img, 1.2, 5)
 
     for (x, y, w, h) in faces:
         cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
@@ -58,7 +51,6 @@ def get_image(img_data):
         eyes = eye_cascade.detectMultiScale(roi_gray)
         for (ex, ey, ew, eh) in eyes:
             cv2.rectangle(roi_color, (ex, ey), (ex + ew, ey + eh), (0, 255, 0), 2)
-
     # continously outputs image to screen for viewing
     cv2.imshow('img',img)
     k = cv2.waitKey(5) & 0xFF
@@ -73,7 +65,7 @@ if __name__ == '__main__':
 
     # Setup Socket parameters
     TCP_IP = '127.0.0.1'
-    TCP_PORT = 51031
+    TCP_PORT = 50063
     BUFFER_SIZE = 20  # Normally 1024, but we want fast response
 
     # try to open socket
@@ -83,34 +75,22 @@ if __name__ == '__main__':
 
     # listen/grab image data from matlab
     #data = tcp_data(s)
-
-    # close the socket
-    #s.close()
     while 1:
-        img_data = tcp_data(s)
-        tmpdata = []
-        for i in img_data:
-            tmpdata.append(ord(i))
-        #print "received data:", tmpdata
 
-        array = np.array(tmpdata)
-        array = np.reshape(array, (400,400,3))
-        #random_image = np.random.random([500, 500])
-        #print random_image
+        img = read_img(s)
 
-        #linear1 = np.linspace(0, 255, 7500).reshape((50,50,3)).astype(np.uint8)
-        #linear1 = cv2.cvtColor(linear1, cv2.COLOR_RGB2BGR)
+        # THIS TOOK ME FOREVER TO FIGURE OUT. RESHAPE IS NOT THE SAME
+        # IN MATLAB AS IT IS IN PYTHON. MEMORY IS STORED DIFFERENTLY AND
+        # THUS PYTHON IS C LIKE (ROW WISE) and MATLAB IS (COLUMN WISE)
+        img = np.reshape(img, (480,640,3), order='F').astype(np.uint8)
 
-        #print linear1
-        #print linear1.shape[0]
-        #print linear1.shape[1]
-        #print linear1.shape[2]
+        # apply classifier and image detection on image
+        detect_image(img)
 
-        time.sleep(1)
-        #array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
-        array = array.astype(np.uint8)
-        #print array
-        get_image(array)
+        img = get_depth()
+
+        # send img to matlab
+        send_img(s,img)
 
     #while 1:
     #    print 'hey'
