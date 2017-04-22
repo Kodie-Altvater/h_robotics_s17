@@ -1,15 +1,13 @@
 %% Send data to python server
 
-conn = open_tcp_socket('127.0.0.1',50063);
+conn = open_tcp_socket('127.0.0.1',50000);
 
-img_data = reshape(imgColor,1,numel(imgColor));
-send_data2python(conn,img_data); 
-
-%close_tcp_socket(conn);
+imgData = reshape(img_data,1,numel(img_data));
+send_data2python(conn,imgData); 
  
 %% Read data from the python server
  % open socket 
- conn = open_tcp_socket('127.0.0.1',50063);
+ conn = open_tcp_socket('127.0.0.1',50064);
  old_data = [];
  i = 0;
 
@@ -30,8 +28,6 @@ send_data2python(conn,img_data);
  img_data = uint8(reshape(old_data,480,640,3));
  imshow(img_data); 
  
- % close the socket 
- close_tcp_socket(conn);
 
 %% Close socket
 fclose(t); 

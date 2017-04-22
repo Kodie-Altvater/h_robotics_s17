@@ -60,37 +60,58 @@ def detect_image(img):
 
     return img
 
-
-if __name__ == '__main__':
-
-    # Setup Socket parameters
-    TCP_IP = '127.0.0.1'
-    TCP_PORT = 50063
+# creates socket
+def setup_socket(ip,port):
+    TCP_IP = ip
+    TCP_PORT = port
     BUFFER_SIZE = 20  # Normally 1024, but we want fast response
 
-    # try to open socket
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind((TCP_IP, TCP_PORT))
     s.listen(1)
+    return s
 
-    # listen/grab image data from matlab
-    #data = tcp_data(s)
+def from_matlab_detect(s):
+
     while 1:
-
+        # function that reads data from socket and interprets it as image data
+        # also closes the connection so it must be reopened in sending program accordingly
         img = read_img(s)
 
         # THIS TOOK ME FOREVER TO FIGURE OUT. RESHAPE IS NOT THE SAME
         # IN MATLAB AS IT IS IN PYTHON. MEMORY IS STORED DIFFERENTLY AND
         # THUS PYTHON IS C LIKE (ROW WISE) and MATLAB IS (COLUMN WISE)
-        img = np.reshape(img, (480,640,3), order='F').astype(np.uint8)
+        img = np.reshape(img, (480, 640, 3), order='F').astype(np.uint8)
 
         # apply classifier and image detection on image
         detect_image(img)
+        time.sleep(1)
 
-        img = get_depth()
+
+if __name__ == '__main__':
+
+    s = setup_socket('127.0.0.1',50000)
+
+    # uses 480 x 640 image and applies classifier and plots
+    from_matlab_detect(s)
+
+    #while 1:
+
+#        img = read_img(s)
+
+        # THIS TOOK ME FOREVER TO FIGURE OUT. RESHAPE IS NOT THE SAME
+        # IN MATLAB AS IT IS IN PYTHON. MEMORY IS STORED DIFFERENTLY AND
+        # THUS PYTHON IS C LIKE (ROW WISE) and MATLAB IS (COLUMN WISE)
+#        img = np.reshape(img, (480,640,3), order='F').astype(np.uint8)
+
+        # apply classifier and image detection on image
+#        detect_image(img)
+
+        #img = get_video()
 
         # send img to matlab
-        send_img(s,img)
+        #send_img(s,img)
 
     #while 1:
     #    print 'hey'
