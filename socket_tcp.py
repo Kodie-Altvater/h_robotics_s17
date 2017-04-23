@@ -68,9 +68,11 @@ def feature2do(conn):
         type = 3
     elif(data == 'exit'):
         type = 4
+    elif(data == 'save'):
+        type = 5
     else:
         # there was an error so make type something it doesn't use
-        type = 5
+        type = 6
 
     return type
 

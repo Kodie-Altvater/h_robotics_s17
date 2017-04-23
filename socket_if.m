@@ -14,7 +14,7 @@ total = 640*480*3;
 
 %% Send color image to python and detect
 fwrite(conn,'detc')
-imgData = reshape(face_data,1,numel(face_data));
+imgData = reshape(B,1,numel(B));
 send_data2python(conn,imgData);
 
 %% Read and plot depth data

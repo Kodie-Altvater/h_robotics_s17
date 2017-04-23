@@ -16,7 +16,7 @@ from os.path import realpath, normpath
 # function to get RGB image from kinect
 def get_video():
     array, _ = freenect.sync_get_video()
-    array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
+    #array = cv2.cvtColor(array, cv2.COLOR_RGB2BGR)
     return array
 
 
@@ -93,6 +93,7 @@ def detect(conn):
 if __name__ == '__main__':
     s = setup_socket('127.0.0.1',60000)
     conn, addr = s.accept()
+    i = 1;
 
     while 1:
 
@@ -113,6 +114,13 @@ if __name__ == '__main__':
         elif type == 4: # close and exit
             conn.close()
             break
+        elif type == 5:
+            # write image
+            img = get_video()
+            array = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            cv2.imwrite("./images/image" + str(i) + ".jpg", array)
+            time.sleep(.3)
+            i = i + 1;
 
         # uses 480 x 640 image and applies classifier and plots
         #detect(conn)
