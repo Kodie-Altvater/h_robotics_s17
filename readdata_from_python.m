@@ -1,3 +1,9 @@
+
+% This function generically reads data from a tcp socket running as the
+% server in python. The server does expect certain things; however, you
+% should be able to read whatever data you want just as long as you
+% don't exceed 2^24 bytes at once. 
+
 function [data] = readdata_from_python(obj)
 
 data = [];

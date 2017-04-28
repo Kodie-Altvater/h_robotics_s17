@@ -16,9 +16,6 @@ import numpy as np
 # Reads data from socket and interprets as image
 def read_data(conn):
 
-    #conn, addr = socket.accept()
-    #print 'Connection address:', addr
-
     while 1:
         data = ''
         tmpdata = ''
@@ -45,7 +42,6 @@ def read_data(conn):
         # tell client that you're finished
         send_data = 'done'
         conn.sendall(send_data)  # echo response
-        #conn.close()
         break
     return tmpdata
 
@@ -73,16 +69,13 @@ def feature2do(conn):
     else:
         # there was an error so make type something it doesn't use
         type = 6
-
     return type
 
-
 # Function that reshapes data according to column-wise (fortran)
-# Sends over to client and the client can decode image if wanted.
+# Sends over to client and the client can decode image/data if wanted.
 def send_data(conn,data):
-    #conn, addr = socket.accept()
-    #print 'Connection address:', addr
 
+    # captures the length so it can be made a 3 byte value
     length = data.size
 
     # Size of data to send (packet header in a sense)
@@ -93,12 +86,10 @@ def send_data(conn,data):
 
 
     sz_uint8 = np.reshape(sz_uint8, (1, -1)).astype(np.uint8)
-    #print sz_uint8
     data = np.reshape(data,(1,-1),order='F').astype(np.uint8)
 
     # concatenate along single row
     data2send = np.concatenate((sz_uint8, data), axis=1)
-
 
     #return data2send
     # send data issue with conn.send where it wouldn't always send the data...

@@ -1,3 +1,5 @@
+% similar to send_data2python
+
 function [ ] = send_data2python(obj,data)
 
 % determine length of data
