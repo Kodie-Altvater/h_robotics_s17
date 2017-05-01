@@ -55,6 +55,8 @@ def detect_image(img):
     # detects face location
     faces = face_cascade.detectMultiScale(img, 1.2, 5)
 
+    # detects banana location but hasn't been fully verified/tested
+    # couldn't get classifier to train properly... to do in the future
     #banana = bananas_cascade.detectMultiScale(img, 2, 2)
 
     for (x, y, w, h) in faces:
@@ -97,7 +99,7 @@ def detect_and_create_image(conn):
     return img
 
 if __name__ == '__main__':
-    s = setup_socket('127.0.0.1',60000)
+    s = setup_socket('10.0.0.101',60000)
     conn, addr = s.accept()
     i = 0;
 
@@ -125,21 +127,29 @@ if __name__ == '__main__':
             #time.sleep(10)
 
             x1, y1, x2, y2 = detect_image(img)
-            #if x1:
-                #print x1
-            #if y1:
-                #print y1
-            #if x2:
-                #print x2
-            #if y2:
-                #print y2
+
             time.sleep(2)
 
             try:
-                data = np.concatenate([x1,x2,y1,y2], axis=1)
-            except:
-                data = np.array([1, 2, 3])
+                # Code below converts integers into bytes and ships it off
+                x1_lsb = (x1 >> 0) & 0xff
+                x1_msb = (x1 >> 8) & 0xff
+
+                y1_lsb = (y1 >> 0) & 0xff
+                y1_msb = (y1 >> 8) & 0xff
+
+                x2_lsb = (x2 >> 0) & 0xff
+                x2_msb = (x2 >> 8) & 0xff
+
+                y2_lsb = (y2 >> 0) & 0xff
+                y2_msb = (y2 >> 8) & 0xff
+
+                data = np.array([x1_msb,x1_lsb,y1_msb,y1_lsb,x2_msb,x2_lsb,y2_msb,y2_lsb])
                 send_data(conn,data)
+            except:
+                data = np.array([1,1,1,1,1,1,1,1])
+                send_data(conn,data)
+                print 'Did not catch data'
 
         elif type == 4: # close and exit
             print 'type 4'

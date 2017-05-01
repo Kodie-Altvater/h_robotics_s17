@@ -84,7 +84,6 @@ def send_data(conn,data):
     sz_uint8[1] = (length >>  8) & 0xff
     sz_uint8[2] = (length >>  0) & 0xff
 
-
     sz_uint8 = np.reshape(sz_uint8, (1, -1)).astype(np.uint8)
     data = np.reshape(data,(1,-1),order='F').astype(np.uint8)
 
@@ -94,15 +93,3 @@ def send_data(conn,data):
     #return data2send
     # send data issue with conn.send where it wouldn't always send the data...
     conn.sendall(data2send)
-
-    # receive done sequence to jump out (makes sure client got all data)
-    #data = ''
-    #while len(data) < 4:
-    #    rcv = conn.recv(4 - len(data))
-    #    data = data + rcv
-    #    if rcv == '':
-    #        break
-
-    #print "connection closed"
-    # shutdown connection
-    #conn.close()
